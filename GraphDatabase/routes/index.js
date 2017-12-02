@@ -51,6 +51,29 @@ function get_node(email,callback){
     }
 }
 
+function delete_node(email,callback){
+    try {
+            db.cypher({
+                query: 'MATCH (n { email: {emailParam} })DETACH DELETE n',
+                params: {emailParam: email},
+            }, function (err,results) {
+                if(err)
+                    callback(null,err);
+                else
+                {
+                    var result=JSON.stringify(results);
+                    console.log("Results:"+result.toString());
+                    callback('success',null);
+                }
+            });
+    }
+    catch (e)
+    {
+        console.log("Exception in deleting node:"+e);
+        callback(null,e);
+    }
+}
+
 router.post('/create', function(req, res, next) {
 
     var req_params=JSON.parse(JSON.stringify(req.body))
@@ -68,6 +91,7 @@ router.post('/create', function(req, res, next) {
             if(error)
             {
                 console.log("Error in get node: "+error);
+                res.status(500).send(JSON.stringify("Internal Server Error"));
             }
             else {
                 console.log("node result"+node_result);
@@ -90,6 +114,53 @@ router.post('/create', function(req, res, next) {
             }
         });
     }
+});
+
+router.post('/deleteNode',function (req,res) {
+
+    var req_params=JSON.parse(JSON.stringify(req.body))
+    var email=req_params.email;
+    if(email==undefined)
+    {
+        res.status(401).send(JSON.stringify({'error':'Missing email in parameter'}));
+    }
+    else
+    {
+        get_node(email,function(node_result,error){
+
+            if(error)
+            {
+                console.log("Error in get node: "+error);
+                res.status(500).send(JSON.stringify("Internal Server Error"));
+            }
+            else {
+                console.log("node result"+node_result);
+                if(node_result!=undefined) {
+                    delete_node(email, function (result,error) {
+                        if(error)
+                        {
+                            console.log("Error"+error);
+                        }
+                        else {
+                            if (result == 'success') {
+                                res.status(200).send();
+                            }
+                            else {
+                                console.log("Result" + result);
+                                res.status(401).send(JSON.stringify({'error': result}));
+                            }
+                        }
+                    });
+                }
+                else
+                {
+                    res.status(401).send(JSON.stringify({'error':'Cannot create because node does not exist'}));
+                }
+            }
+        });
+    }
+
+
 });
 
 
