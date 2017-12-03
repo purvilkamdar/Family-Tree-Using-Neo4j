@@ -292,7 +292,7 @@ global.Spouse=function Spouse(email1,email2,callback)
         db.cypher({
             query: 'MATCH (n:Person),(m:Person) WHERE n.email = {emailParam1} AND m.email = {emailParam2} CREATE (n)-[r:Spouse]->(m) RETURN r',
             params: {emailParam1: email1,
-                emailParam2:email2},
+                emailParam2:email2}
         }, function (err,results) {
             if(err)
                 callback(null,err);
@@ -316,7 +316,7 @@ function get_all_relationships(email,callback)
     try{
         db.cypher({
             query: 'MATCH (a:Person {email: {emailParam}})-[r]->(b) RETURN type(r), b',
-            params: {emailParam:email},
+            params: {emailParam:email}
         },
         function (err,results){
             if(err)
@@ -330,7 +330,7 @@ function get_all_relationships(email,callback)
         });
 
     }
-    
+
     catch (e)
     {
         console.log("Excepting in get all relationships:"+e);
@@ -508,6 +508,43 @@ router.post('/createRelationship', function(req, res, next) {
     }
 });
 
+router.post('/getRelationship',function(req,res,next){
+    var req_params=JSON.parse(JSON.stringify(req.body));
+    var email=req_params.email;
+    if(email==undefined)
+    {
+        res.status(401).send(JSON.stringify({'error':'Missing email in parameter'}));
+    }
+    else
+    {
+        get_node(email,function(node_result,error){
 
+            if(error)
+            {
+                console.log("Error in get node: "+error);
+                res.status(500).send(JSON.stringify("Internal Server Error"));
+            }
+            else {
+                console.log("node result"+node_result);
+                if(node_result!=undefined && node_result!='[]') {
+                    get_all_relationships(email, function (result,error) {
+                        if(error)
+                        {
+                            console.log("Error"+error);
+                            res.status(500).send(JSON.stringify(({'error':error})));
+                        }
+                        else {
+                            res.status(200).send(JSON.stringify({'Results':result}));
+                        }
+                    });
+                }
+                else
+                {
+                    res.status(401).send(JSON.stringify({'error':'Cannot fetch reslations because node does not exist'}));
+                }
+            }
+        });
+    }
+});
 
 module.exports = router;
