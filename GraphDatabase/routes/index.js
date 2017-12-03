@@ -6,11 +6,12 @@ var db = new neo4j1.GraphDatabase('http://neo4j:purvil92@localhost:7474');
 
 /* GET home page. */
 
-function create_node(name,email,callback){
+function create_node(fname,lname, email,callback){
     try {
         db.cypher({
-                query: 'CREATE (n:Person {name: {nameParam}, email: {emailParam} })',
-                params: {nameParam: name,
+                query: 'CREATE (n:Person {fname: {fnameParam}, lname: {lnameParam}, email: {emailParam} })',
+                params: {fnameParam: fname,
+                        lnameParam : lname,
                         emailParam: email},
             }, function callback1(err, results) {
                 if (err)
@@ -341,10 +342,11 @@ function get_all_relationships(email,callback)
 router.post('/create', function(req, res, next) {
 
     var req_params=JSON.parse(JSON.stringify(req.body))
-    var name=req_params.name;
+    var fname=req_params.fname;
+    var lname=req_params.lname;
     var email=req_params.email;
     console.log(JSON.stringify(req.body));
-    if(name == undefined || email == undefined)
+    if(fname == undefined || email == undefined || lname == undefined)
     {
         res.status(401).send(JSON.stringify({'error':'Missing name or email in parameters'}));
     }
@@ -360,7 +362,7 @@ router.post('/create', function(req, res, next) {
             else {
                 console.log("node result"+node_result);
                 if(node_result==undefined || node_result=='[]') {
-                    create_node(name, email, function (result) {
+                    create_node(fname, lname, email, function (result) {
                         if (result == 'success') {
                             res.status(200).send();
                         }
