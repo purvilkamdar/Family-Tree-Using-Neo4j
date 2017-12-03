@@ -536,7 +536,7 @@ router.post('/getRelationship',function(req,res,next){
                             res.status(500).send(JSON.stringify(({'error':error})));
                         }
                         else {
-                            res.status(200).send(JSON.stringify({'Results':result}));
+                            res.status(200).send({'Results':result});
                         }
                     });
                 }
