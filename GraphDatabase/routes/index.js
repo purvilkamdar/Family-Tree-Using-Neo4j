@@ -2,9 +2,10 @@ var express = require('express');
 var router = express.Router();
 var neo4j1 = require('neo4j');
 
-var db = new neo4j1.GraphDatabase('http://neo4j:admin@localhost:7474');
+var db = new neo4j1.GraphDatabase('http://neo4j:purvil92@localhost:7474');
 
 /* GET home page. */
+
 
 function create_node(fname,lname,email,lat,lon,city,callback){
     try {
@@ -15,12 +16,7 @@ function create_node(fname,lname,email,lat,lon,city,callback){
                         emailParam: email,
                         latParam:lat,
                         lonParam:lon,
-<<<<<<< HEAD
                         cityParam:city}
-=======
-                        cityParam:city
-                        }
->>>>>>> 80c0031aa23af65dc0c98d40936a67f4e7f85e43
             }, function callback1(err, results) {
                 if (err)
                     callback (err);
@@ -325,7 +321,7 @@ function get_all_relationships(email,callback)
 {
     try{
         db.cypher({
-            query: 'MATCH (a:Person {email: {emailParam}})-[r]->(b) RETURN type(r), b, a',
+            query: 'MATCH (a:Person {email: {emailParam}})-[r]-(b) RETURN type(r), b, a',
             params: {emailParam:email}
         },
         function (err,results){
@@ -606,7 +602,7 @@ router.post('/getRelationship',function(req,res,next){
                             var temp_json=JSON.parse(result);
                             if(type=='google') {
                                 var final_json=[];
-                                for (i=0;i<temp_json.length;i++)
+                                for (i=0;i<temp_json.length;i=i+2)
                                 {
                                     var temp_array={};
                                     temp_array['relation']=temp_json[i]['type(r)'];
@@ -623,17 +619,32 @@ router.post('/getRelationship',function(req,res,next){
                                 var final_json={};
                                 final_json['nodes']=[];
                                 final_json['edges']=[];
-                                for(i=0;i<temp_json.length;i++)
+                                for(i=0;i<temp_json.length;i=i+2)
                                 {
-                                    var temp_nodes_array={};
-                                    var temp_edges_array={};
-                                    temp_nodes_array['id']=(temp_json[i].b.properties.fname) + " " + (temp_json[i].b.properties.lname);
-                                    temp_nodes_array['nodeType']=temp_json[i]['type(r)'];
-                                    temp_edges_array['source']=(temp_json[i].a.properties.fname) + " " + (temp_json[i].a.properties.lname);
-                                    temp_edges_array['target'] = (temp_json[i].b.properties.fname) + " " + (temp_json[i].b.properties.lname);
-                                    temp_edges_array['edgeType'] = temp_json[i]['type(r)'];
-                                    final_json.nodes.push(temp_nodes_array);
-                                    final_json.edges.push(temp_edges_array);
+                                    var temp_nodes_array_dest={};
+                                    var temp_nodes_array_source={};
+                                    var temp_edges_array_dest={};
+                                    var temp_edges_array_source={};
+
+                                    temp_nodes_array_dest['id']=(temp_json[i].b.properties.fname) + " " + (temp_json[i].b.properties.lname);
+                                    temp_nodes_array_dest['nodeType']=temp_json[i]['type(r)'];
+
+                                    temp_nodes_array_source['id']=(temp_json[i].a.properties.fname) + " " + (temp_json[i].a.properties.lname);
+                                    temp_nodes_array_source['nodeType']=temp_json[i+1]['type(r)'];
+
+
+                                    temp_edges_array_dest['source']=(temp_json[i].a.properties.fname) + " " + (temp_json[i].a.properties.lname);
+                                    temp_edges_array_dest['target'] = (temp_json[i].b.properties.fname) + " " + (temp_json[i].b.properties.lname);
+                                    temp_edges_array_dest['edgeType'] = temp_json[i]['type(r)'];
+
+                                    temp_edges_array_source['target']=(temp_json[i].a.properties.fname) + " " + (temp_json[i].a.properties.lname);
+                                    temp_edges_array_source['source'] = (temp_json[i].b.properties.fname) + " " + (temp_json[i].b.properties.lname);
+                                    temp_edges_array_source['edgeType'] = temp_json[i+1]['type(r)'];
+
+                                    final_json.nodes.push(temp_nodes_array_dest);
+                                    final_json.nodes.push(temp_nodes_array_source);
+                                    final_json.edges.push(temp_edges_array_dest);
+                                    final_json.edges.push(temp_edges_array_source);
                                 }
                                 res.status(200).send(final_json);
                             }
