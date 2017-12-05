@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 var neo4j1 = require('neo4j');
 
-var db = new neo4j1.GraphDatabase('http://neo4j:purvil92@localhost:7474');
+var db = new neo4j1.GraphDatabase('http://neo4j:admin@localhost:7474');
 
 /* GET home page. */
 
@@ -605,13 +605,14 @@ router.post('/getRelationship',function(req,res,next){
                                 for (i=0;i<temp_json.length;i=i+2)
                                 {
                                     var temp_array={};
-                                    temp_array['relation']=temp_json[i]['type(r)'];
+                                    temp_array['relation']=temp_json[i+1]['type(r)'];
                                     temp_array['name']=(temp_json[i].b.properties.fname) + " " + (temp_json[i].b.properties.lname);
                                     temp_array['lat']=temp_json[i].b.properties.lat;
                                     temp_array['long']=temp_json[i].b.properties.lon;
                                     temp_array['city']=temp_json[i].b.properties.city;
                                     final_json.push(temp_array);
                                 }
+                                console.log(final_json);
                                 res.status(200).send(final_json);
                             }
                             else if (type=='home')
