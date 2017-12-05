@@ -13,9 +13,9 @@ function create_node(fname,lname,email,lat,lon,city,callback){
                 params: {fnameParam: fname,
                         lnameParam : lname,
                         emailParam: email,
-                        lat:latParam,
-                        lon:lonParam,
-                        city:cityParam}
+                        latParam:lat,
+                        lonParam:lon,
+                        cityParam:city}
             }, function callback1(err, results) {
                 if (err)
                     callback (err);
@@ -343,7 +343,45 @@ function get_all_relationships(email,callback)
     }
 }
 
+function delete_relationships(email1,email2,callback)
+{
+    try {
+        db.cypher({
+            query: 'MATCH (a:Person {email: {emailParam1} })-[r]->(b:Person {email:{emailParam2}}) DELETE r',
+            params: {emailParam1: email1,
+                emailParam2:email2}
+        }, function (err,results) {
+            if(err)
+                callback(null,err);
+            else
+            {
+                var result=JSON.stringify(results);
+                console.log("Results for delete relationships:"+result.toString());
+                //callback('success',null);
+            }
+        });
+        db.cypher({
+            query: 'MATCH (a:Person {email: {emailParam1} })-[r]->(b:Person {email:{emailParam2}}) DELETE r',
+            params: {emailParam1: email2,
+                emailParam2:email1}
+        }, function (err,results) {
+            if(err)
+                callback(null,err);
+            else
+            {
+                var result=JSON.stringify(results);
+                console.log("Results for delete relationships:"+result.toString());
+                callback('success',null);
+            }
+        });
+    }
+    catch (e)
+    {
+        console.log("Exception in deleting node:"+e);
+        callback(null,e);
+    }
 
+}
 router.post('/create', function(req, res, next) {
 
     var req_params=req.body;
@@ -602,6 +640,31 @@ router.post('/getRelationship',function(req,res,next){
                 {
                     res.status(401).send(JSON.stringify({'error':'Cannot fetch reslations because node does not exist'}));
                 }
+            }
+        });
+    }
+});
+
+router.post('/deleteRelationship',function(req,res,next){
+    var req_params=req.body;
+    var email1=req_params.email1;
+    var email2=req_params.email2;
+    if(email1==undefined || email2==undefined)
+    {
+        res.status(401).send(JSON.stringify({'error':'Missing email or type in parameter'}));
+    }
+    else
+    {
+        delete_relationships(email1,email2,function(node_result,error){
+
+            if(error)
+            {
+                console.log("Error in get node: "+error);
+                res.status(500).send(JSON.stringify("Internal Server Error"));
+            }
+            else {
+                console.log("node result"+node_result);
+                res.status(200).send();
             }
         });
     }
