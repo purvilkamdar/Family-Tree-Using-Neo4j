@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 var neo4j1 = require('neo4j');
 
-var db = new neo4j1.GraphDatabase('http://neo4j:purvil92@localhost:7474');
+var db = new neo4j1.GraphDatabase('http://neo4j:admin@localhost:7474');
 
 /* GET home page. */
 
@@ -15,7 +15,12 @@ function create_node(fname,lname,email,lat,lon,city,callback){
                         emailParam: email,
                         latParam:lat,
                         lonParam:lon,
+<<<<<<< HEAD
                         cityParam:city}
+=======
+                        cityParam:city
+                        }
+>>>>>>> 80c0031aa23af65dc0c98d40936a67f4e7f85e43
             }, function callback1(err, results) {
                 if (err)
                     callback (err);
