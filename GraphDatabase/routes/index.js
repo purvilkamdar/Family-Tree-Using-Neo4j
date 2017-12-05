@@ -6,13 +6,16 @@ var db = new neo4j1.GraphDatabase('http://neo4j:purvil92@localhost:7474');
 
 /* GET home page. */
 
-function create_node(fname,lname, email,callback){
+function create_node(fname,lname,email,lat,lon,city,callback){
     try {
         db.cypher({
-                query: 'CREATE (n:Person {fname: {fnameParam}, lname: {lnameParam}, email: {emailParam} })',
+                query: 'CREATE (n:Person {fname: {fnameParam}, lname: {lnameParam}, email: {emailParam},lat: {latParam},lon: {lonParam},city: {cityParam} })',
                 params: {fnameParam: fname,
                         lnameParam : lname,
-                        emailParam: email},
+                        emailParam: email,
+                        lat:latParam,
+                        lon:lonParam,
+                        city:cityParam}
             }, function callback1(err, results) {
                 if (err)
                     callback (err);
@@ -110,28 +113,29 @@ function delete_node(email,callback){
     }
 }
 
-function checkRelationship(email1,email2,callback)
-{
+function checkRelationship(email1,email2,callback) {
     try {
         db.cypher({
-            query: 'MATCH ({email:{emailParam1}})-[r]->)({email:}) RETURN r',
-            params: {emailParam1: email1,
-                emailParam2:email2},
-        }, function (err,results) {
-            if(err)
-                callback(null,err);
-            else
-            {
-                var result=JSON.stringify(results);
-                console.log("Results:"+result.toString());
-                callback('success',null);
-            }
-        });
+                query: 'MATCH (a:Person {email: {emailParam1}})-[r]->(b:Person {email: {emailParam2}}) RETURN type(r)',
+                params: {
+                    emailParam1: email1,
+                    emailParam2: email2
+                }
+            },
+            function (err, results) {
+                if (err)
+                    callback(null, err);
+                else {
+                    var result = JSON.stringify(results);
+                    console.log("Results for all relationship from a node:" + result);
+                    callback(result, null);
+                }
+            });
+
     }
     catch (e)
     {
-        console.log("Exception in deleting node:"+e);
-        callback(null,e);
+        console.log("Exception in check relationship: "+e);
     }
 }
 
@@ -341,12 +345,15 @@ function get_all_relationships(email,callback)
 
 router.post('/create', function(req, res, next) {
 
-    var req_params=JSON.parse(JSON.stringify(req.body))
+    var req_params=req.body;
     var fname=req_params.fname;
     var lname=req_params.lname;
     var email=req_params.email;
+    var lat=req_params.Latitude;
+    var lon=req_params.Longitude;
+    var city=req_params.city;
     console.log(JSON.stringify(req.body));
-    if(fname == undefined || email == undefined || lname == undefined)
+    if(fname == undefined || email == undefined || lname == undefined || lat == undefined || lon == undefined || city == undefined)
     {
         res.status(401).send(JSON.stringify({'error':'Missing name or email in parameters'}));
     }
@@ -362,7 +369,7 @@ router.post('/create', function(req, res, next) {
             else {
                 console.log("node result"+node_result);
                 if(node_result==undefined || node_result=='[]') {
-                    create_node(fname, lname, email, function (result) {
+                    create_node(fname, lname, email, lat,lon,city,function (result) {
                         if (result == 'success') {
                             res.status(200).send();
                         }
@@ -383,7 +390,7 @@ router.post('/create', function(req, res, next) {
 
 router.post('/deleteNode',function (req,res) {
 
-    var req_params=JSON.parse(JSON.stringify(req.body))
+    var req_params=req.body
     var email=req_params.email;
     if(email==undefined)
     {
@@ -430,7 +437,7 @@ router.post('/deleteNode',function (req,res) {
 
 router.post('/createRelationship', function(req, res, next) {
     var relationship_list=['Father','Mother','Son','Daughter','Brother','Sister','Spouse'];
-    var req_params=JSON.parse(JSON.stringify(req.body))
+    var req_params=req.body
     var email1=req_params.email1;
     var email2=req_params.email2;
     var r1=req_params.r1;
@@ -439,7 +446,7 @@ router.post('/createRelationship', function(req, res, next) {
     console.log(JSON.stringify(req.body));
     if(email1 == undefined ||  r1 == undefined || email2 == undefined || r2 == undefined)
     {
-        res.status(401).send(JSON.stringify({'error':'Missing name or email or relationship in parameters'}));
+        res.status(401).send(JSON.stringify({'error':'Missing email or relationship in parameters'}));
     }
     else
     {
@@ -461,45 +468,60 @@ router.post('/createRelationship', function(req, res, next) {
             else {
 
                 if(node_result == 'success') {
-                    if (r1 in global && typeof global[r1] === "function") {
 
-                        global[r1](email1, email2, function (result, err) {
-                            if (err) {
-                                console.log("Error:" + err);
+                    checkRelationship(email1,email2,function (results,err){
+
+                        if (err)
+                        {
+                            console.log("Error in check relationship: "+err);
+                            res.status(500).send(JSON.stringify({'errro':err}));
+                        }
+                        else if (results=='[]'){
+
+                            if (r1 in global && typeof global[r1] === "function") {
+                                global[r1](email1, email2, function (result, err) {
+                                    if (err) {
+                                        console.log("Error:" + err);
+                                    }
+                                    else {
+                                        if (result == 'success') {
+                                        }
+                                        else {
+                                            console.log("Result" + result.toString());
+                                            res.status(401).send(JSON.stringify({'error': result}));
+                                        }
+                                    }
+                                });
                             }
                             else {
-                                if (result == 'success') {
-                                }
-                                else {
-                                    console.log("Result" + result.toString());
-                                    res.status(401).send(JSON.stringify({'error': result}));
-                                }
+                                console.log("could not find " + r1 + " function");
                             }
-                        });
-                    }
-                    else {
-                        console.log("could not find " + r1 + " function");
-                    }
-                    if (r2 in global && typeof global[r2] === "function") {
+                            if (r2 in global && typeof global[r2] === "function") {
 
-                        global[r2](email2, email1, function (result, err) {
-                            if (err) {
-                                console.log("Error:" + err);
+                                global[r2](email2, email1, function (result, err) {
+                                    if (err) {
+                                        console.log("Error:" + err);
+                                    }
+                                    else {
+                                        if (result == 'success') {
+                                            res.status(200).send();
+                                        }
+                                        else {
+                                            console.log("Result" + result.toString());
+                                            res.status(401).send(JSON.stringify({'error': result}));
+                                        }
+                                    }
+                                });
                             }
                             else {
-                                if (result == 'success') {
-                                    res.status(200).send();
-                                }
-                                else {
-                                    console.log("Result" + result.toString());
-                                    res.status(401).send(JSON.stringify({'error': result}));
-                                }
+                                console.log("could not find " + r1 + " function");
                             }
-                        });
-                    }
-                    else {
-                        console.log("could not find " + r1 + " function");
-                    }
+                        }
+                        else
+                        {
+                            res.status(401).send(JSON.stringify({'error':'Cannot create Relationship as it already exists'}));
+                        }
+                    });
                 }
                 else
                 {
@@ -511,11 +533,12 @@ router.post('/createRelationship', function(req, res, next) {
 });
 
 router.post('/getRelationship',function(req,res,next){
-    var req_params=JSON.parse(JSON.stringify(req.body));
+    var req_params=req.body;
     var email=req_params.email;
-    if(email==undefined)
+    var type=req_params.type;
+    if(email==undefined || type==undefined)
     {
-        res.status(401).send(JSON.stringify({'error':'Missing email in parameter'}));
+        res.status(401).send(JSON.stringify({'error':'Missing email or type in parameter'}));
     }
     else
     {
@@ -536,7 +559,21 @@ router.post('/getRelationship',function(req,res,next){
                             res.status(500).send(JSON.stringify(({'error':error})));
                         }
                         else {
-                            res.status(200).send({'Results':result});
+                            var final_json=[];
+                            if(type=='google') {
+                                var temp_json=JSON.parse(result);
+                                for (i=0;i<temp_json.length;i++)
+                                {
+                                    var temp_array={};
+                                    temp_array['relation']=temp_json[i]['type(r)'];
+                                    temp_array['name']=(temp_json[i].b.properties.fname) + " " + (temp_json[i].b.properties.lname);
+                                    temp_array['lat']=temp_json[i].b.properties.lat;
+                                    temp_array['long']=temp_json[i].b.properties.lon;
+                                    temp_array['city']=temp_json[i].b.properties.city;
+                                    final_json.push(temp_array);
+                                }
+                            }
+                            res.status(200).send(final_json);
                         }
                     });
                 }
