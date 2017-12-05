@@ -320,7 +320,7 @@ function get_all_relationships(email,callback)
 {
     try{
         db.cypher({
-            query: 'MATCH (a:Person {email: {emailParam}})-[r]->(b) RETURN type(r), b',
+            query: 'MATCH (a:Person {email: {emailParam}})-[r]->(b) RETURN type(r), b, a',
             params: {emailParam:email}
         },
         function (err,results){
@@ -342,6 +342,7 @@ function get_all_relationships(email,callback)
         callback(null,e);
     }
 }
+
 
 router.post('/create', function(req, res, next) {
 
@@ -559,9 +560,9 @@ router.post('/getRelationship',function(req,res,next){
                             res.status(500).send(JSON.stringify(({'error':error})));
                         }
                         else {
-                            var final_json=[];
+                            var temp_json=JSON.parse(result);
                             if(type=='google') {
-                                var temp_json=JSON.parse(result);
+                                var final_json=[];
                                 for (i=0;i<temp_json.length;i++)
                                 {
                                     var temp_array={};
@@ -572,8 +573,28 @@ router.post('/getRelationship',function(req,res,next){
                                     temp_array['city']=temp_json[i].b.properties.city;
                                     final_json.push(temp_array);
                                 }
+                                res.status(200).send(final_json);
                             }
-                            res.status(200).send(final_json);
+                            else if (type=='home')
+                            {
+                                var final_json={};
+                                final_json['nodes']=[];
+                                final_json['edges']=[];
+                                for(i=0;i<temp_json.length;i++)
+                                {
+                                    var temp_nodes_array={};
+                                    var temp_edges_array={};
+                                    temp_nodes_array['id']=(temp_json[i].b.properties.fname) + " " + (temp_json[i].b.properties.lname);
+                                    temp_nodes_array['nodeType']=temp_json[i]['type(r)'];
+                                    temp_edges_array['source']=(temp_json[i].a.properties.fname) + " " + (temp_json[i].a.properties.lname);
+                                    temp_edges_array['target'] = (temp_json[i].b.properties.fname) + " " + (temp_json[i].b.properties.lname);
+                                    temp_edges_array['edgeType'] = temp_json[i]['type(r)'];
+                                    final_json.nodes.push(temp_nodes_array);
+                                    final_json.edges.push(temp_edges_array);
+                                }
+                                res.status(200).send(final_json);
+                            }
+
                         }
                     });
                 }
