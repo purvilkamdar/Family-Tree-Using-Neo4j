@@ -605,7 +605,7 @@ router.post('/getRelationship',function(req,res,next){
                                 for (i=0;i<temp_json.length;i=i+2)
                                 {
                                     var temp_array={};
-                                    temp_array['relation']=temp_json[i+1]['type(r)'];
+                                    temp_array['relation']=temp_json[i]['type(r)'];
                                     temp_array['name']=(temp_json[i].b.properties.fname) + " " + (temp_json[i].b.properties.lname);
                                     temp_array['lat']=temp_json[i].b.properties.lat;
                                     temp_array['long']=temp_json[i].b.properties.lon;
