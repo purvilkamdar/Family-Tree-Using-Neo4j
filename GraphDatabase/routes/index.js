@@ -33,11 +33,42 @@ function create_node(fname,lname,email,lat,lon,city,callback){
     }
 }
 
+function modify_node(fname,lname,email,lat,lon,city,callback)
+{
+    try {
+        db.cypher({
+            query: 'MATCH (n:Person) WHERE n.email = {emailParam} set n.fname = {fnameParam}, n.lname = {lnameParam}, n.lat = {latParam}, n.lon = {lonParam}, n.city = {cityParam}  RETURN n',
+            params: {
+                fnameParam: fname,
+                lnameParam : lname,
+                emailParam: email,
+                latParam:lat,
+                lonParam:lon,
+                cityParam:city
+            }
+        }, function (err,results) {
+            if(err)
+                callback(null,err);
+            else
+            {
+                var result=JSON.stringify(results);
+                console.log("Results:"+result.toString());
+                callback('success',null);
+            }
+        });
+    }
+    catch (e)
+    {
+        console.log("Exception in deleting node:"+e);
+        callback(null,e);
+    }
+}
+
 function get_node(email,callback){
     try {
         db.cypher({
             query: 'MATCH (n:Person) WHERE n.email = {emailParam} RETURN n.email',
-            params:{emailParam:email},
+            params:{emailParam:email}
         }, function callback1(err, results) {
             if (err)
                 callback (null,err);
@@ -480,8 +511,14 @@ router.post('/createRelationship', function(req, res, next) {
     var req_params=req.body
     var email1=req_params.email1;
     var email2=req_params.email2;
+    var fname=req_params.fname;
+    var lname=req_params.lname;
+    var lat=req_params.Latitude;
+    var lon=req_params.Longitude;
+    var city=req_params.city;
     var r1=req_params.r1;
     var r2=req_params.r2;
+    var create_node_flag=req_params.createNode;
 
     console.log(JSON.stringify(req.body));
     if(email1 == undefined ||  r1 == undefined || email2 == undefined || r2 == undefined)
@@ -495,80 +532,147 @@ router.post('/createRelationship', function(req, res, next) {
             res.status(401).send(JSON.stringify({error:'This type of relationship is not supported right now'}));
         }
 
-        var send_email=[];
-        send_email[0]=email1;
-        send_email[1]=email2;
-        get_nodes(send_email,function(node_result,error){
+        if(create_node_flag)
+        {
+            get_node(email2,function(node_result,error){
 
-            if(error)
-            {
-                console.log("Error in get node: "+error);
-                res.status(500).send(JSON.stringify("Internal Server Error"));
-            }
-            else {
-
-                if(node_result == 'success') {
-
-                    checkRelationship(email1,email2,function (results,err){
-
-                        if (err)
-                        {
-                            console.log("Error in check relationship: "+err);
-                            res.status(500).send(JSON.stringify({'errro':err}));
-                        }
-                        else if (results=='[]'){
-
-                            if (r1 in global && typeof global[r1] === "function") {
-                                global[r1](email1, email2, function (result, err) {
-                                    if (err) {
-                                        console.log("Error:" + err);
-                                    }
-                                    else {
-                                        if (result == 'success') {
-                                        }
-                                        else {
-                                            console.log("Result" + result.toString());
-                                            res.status(401).send(JSON.stringify({'error': result}));
-                                        }
-                                    }
-                                });
-                            }
-                            else {
-                                console.log("could not find " + r1 + " function");
-                            }
-                            if (r2 in global && typeof global[r2] === "function") {
-
-                                global[r2](email2, email1, function (result, err) {
-                                    if (err) {
-                                        console.log("Error:" + err);
-                                    }
-                                    else {
-                                        if (result == 'success') {
-                                            res.status(200).send();
-                                        }
-                                        else {
-                                            console.log("Result" + result.toString());
-                                            res.status(401).send(JSON.stringify({'error': result}));
-                                        }
-                                    }
-                                });
-                            }
-                            else {
-                                console.log("could not find " + r1 + " function");
-                            }
-                        }
-                        else
-                        {
-                            res.status(401).send(JSON.stringify({'error':'Cannot create Relationship as it already exists'}));
-                        }
-                    });
-                }
-                else
+                if(error)
                 {
-                    res.status(401).send(JSON.stringify({'error':'Cannot create relationship as all the nodes do not exist'}));
+                    console.log("Error in get node: "+error);
+                    res.status(500).send(JSON.stringify("Internal Server Error"));
                 }
-            }
-        });
+                else {
+                    console.log("node result"+node_result);
+                    if(node_result==undefined || node_result=='[]') {
+                        create_node(fname, lname, email2, lat,lon,city,function (result) {
+                            if (result == 'success') {
+
+                                if (r1 in global && typeof global[r1] === "function") {
+                                    global[r1](email1, email2, function (result, err) {
+                                        if (err) {
+                                            console.log("Error:" + err);
+                                        }
+                                        else {
+                                            if (result == 'success') {
+                                            }
+                                            else {
+                                                console.log("Result" + result.toString());
+                                                res.status(401).send(JSON.stringify({'error': result}));
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    console.log("could not find " + r1 + " function");
+                                }
+                                if (r2 in global && typeof global[r2] === "function") {
+
+                                    global[r2](email2, email1, function (result, err) {
+                                        if (err) {
+                                            console.log("Error:" + err);
+                                        }
+                                        else {
+                                            if (result == 'success') {
+                                                res.status(200).send();
+                                            }
+                                            else {
+                                                console.log("Result" + result.toString());
+                                                res.status(401).send(JSON.stringify({'error': result}));
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    console.log("could not find " + r1 + " function");
+                                }
+
+                            }
+                            else {
+                                console.log("Result" + result.toString());
+                                res.status(401).send(JSON.stringify({'error': result}));
+                            }
+                        });
+                    }
+                    else
+                    {
+                        res.status(401).send(JSON.stringify({'error':'Cannot create because node already exists'}));
+                    }
+                }
+            });
+        }
+        else {
+
+            var send_email = [];
+            send_email[0] = email1;
+            send_email[1] = email2;
+            get_nodes(send_email, function (node_result, error) {
+
+                if (error) {
+                    console.log("Error in get node: " + error);
+                    res.status(500).send(JSON.stringify("Internal Server Error"));
+                }
+                else {
+
+                    if (node_result == 'success') {
+
+                        checkRelationship(email1, email2, function (results, err) {
+
+                            if (err) {
+                                console.log("Error in check relationship: " + err);
+                                res.status(500).send(JSON.stringify({'errro': err}));
+                            }
+                            else if (results == '[]') {
+
+                                if (r1 in global && typeof global[r1] === "function") {
+                                    global[r1](email1, email2, function (result, err) {
+                                        if (err) {
+                                            console.log("Error:" + err);
+                                        }
+                                        else {
+                                            if (result == 'success') {
+                                            }
+                                            else {
+                                                console.log("Result" + result.toString());
+                                                res.status(401).send(JSON.stringify({'error': result}));
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    console.log("could not find " + r1 + " function");
+                                }
+                                if (r2 in global && typeof global[r2] === "function") {
+
+                                    global[r2](email2, email1, function (result, err) {
+                                        if (err) {
+                                            console.log("Error:" + err);
+                                        }
+                                        else {
+                                            if (result == 'success') {
+                                                res.status(200).send();
+                                            }
+                                            else {
+                                                console.log("Result" + result.toString());
+                                                res.status(401).send(JSON.stringify({'error': result}));
+                                            }
+                                        }
+                                    });
+                                }
+                                else {
+                                    console.log("could not find " + r1 + " function");
+                                }
+                            }
+                            else {
+                                res.status(401).send(JSON.stringify({'error': 'Cannot create Relationship as it already exists'}));
+                            }
+                        });
+                    }
+                    else {
+                        res.status(401).send(JSON.stringify({'error': 'Cannot create relationship as all the nodes do not exist'}));
+                    }
+                }
+            });
+        }
     }
 });
 
@@ -817,6 +921,41 @@ router.post('/modifyRelationship', function(req, res, next) {
                 else
                 {
                     res.status(401).send(JSON.stringify({'error':'Cannot create relationship as all the nodes do not exist'}));
+                }
+            }
+        });
+    }
+});
+
+router.post('/modifyNode',function (req,res,next) {
+
+    var req_params=req.body;
+    var fname=req_params.fname;
+    var lname=req_params.lname;
+    var email=req_params.email;
+    var lat=req_params.Latitude;
+    var lon=req_params.Longitude;
+    var city=req_params.city;
+    console.log(JSON.stringify(req.body));
+    if(fname == undefined || email == undefined || lname == undefined || lat == undefined || lon == undefined || city == undefined)
+    {
+        res.status(401).send(JSON.stringify({'error':'Missing some or required parameters'}));
+    }
+    else
+    {
+        modify_node(fname, lname, email, lat,lon,city,function (result,err) {
+
+            if(err)
+            {
+                console.log("Error in Modify node: "+err);
+            }
+            else {
+                if (result == 'success') {
+                    res.status(200).send();
+                }
+                else {
+                    console.log("Result" + result.toString());
+                    res.status(401).send(JSON.stringify({'error': result}));
                 }
             }
         });
