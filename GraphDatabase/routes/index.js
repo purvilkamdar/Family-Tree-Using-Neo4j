@@ -985,6 +985,7 @@ router.post('/getHome',function(req,res,next){
     }
 });
 
+//Added comment
 router.post('/deleteRelationship',function(req,res,next){
     var req_params=req.body;
     var email1=req_params.email1;
