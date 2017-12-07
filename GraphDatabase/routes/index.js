@@ -1,8 +1,13 @@
 var express = require('express');
 var router = express.Router();
 var neo4j1 = require('neo4j');
+var Promise=require("promise");
 
 var db = new neo4j1.GraphDatabase('http://neo4j:purvil92@localhost:7474');
+
+var High_level =[];
+High_level.push('Father');
+High_level.push('Mother');
 
 /* GET home page. */
 
@@ -171,6 +176,151 @@ function checkRelationship(email1,email2,callback) {
     }
 }
 
+function checkRelationship_with_param(email1,email2,param,callback) {
+    try {
+        db.cypher({
+                query: 'MATCH (a:Person {email: {emailParam1}})-[r]->(b:Person {email: {emailParam2}}) RETURN type(r)',
+                params: {
+                    emailParam1: email1,
+                    emailParam2: email2
+                }
+            },
+            function (err, results) {
+                if (err)
+                    callback(null, err);
+                else {
+                    //var result = JSON.stringify(results);
+                    console.log("Results for all relationship from a node:" + results);
+                    callback(results,null,param);
+                }
+            });
+
+    }
+    catch (e)
+    {
+        console.log("Exception in check relationship: "+e);
+    }
+}
+
+function check_single_relation(email,callback){
+    try {
+        db.cypher({
+                query: 'MATCH (n:Person {email: {emailParam1}})-[r]-()RETURN type(r)',
+                params: {
+                    emailParam1: email
+                }
+            },
+            function (err, results) {
+                if (err)
+                    callback(null, err);
+                else {
+                    var result = JSON.stringify(results);
+                    console.log("Results for all relationship from a node:" + result);
+                    callback(result, null);
+                }
+            });
+
+    }
+    catch (e)
+    {
+        console.log("Exception in check relationship: "+e);
+    }
+}
+
+function get_all_relationships(email,callback) {
+    try{
+        db.cypher({
+                query: 'MATCH (a:Person {email: {emailParam}})-[r]->(b) RETURN type(r), b, a',
+                params: {emailParam:email}
+            },
+            function (err,results){
+                if(err)
+                    callback(null,err);
+                else
+                {
+                    var result=JSON.stringify(results);
+                    console.log("Results for all relationship from a node:"+result);
+                    callback(result,null);
+                }
+            });
+
+    }
+
+    catch (e)
+    {
+        console.log("Excepting in get all relationships:"+e);
+        callback(null,e);
+    }
+}
+
+function get_home(email,callback){
+
+    try{
+        db.cypher({
+                query: 'MATCH (a:Person {email: {emailParam}})-[r]-(b) RETURN type(r), b, a',
+                params: {emailParam:email}
+            },
+            function (err,results){
+                if(err)
+                    callback(null,err);
+                else
+                {
+                    var result=JSON.stringify(results);
+                    console.log("Results for all relationship from a node:"+result);
+                    callback(result,null);
+                }
+            });
+
+    }
+
+    catch (e)
+    {
+        console.log("Excepting in get all relationships:"+e);
+        callback(null,e);
+    }
+
+}
+
+function delete_relationships(email1,email2,callback) {
+    try {
+        db.cypher({
+            query: 'MATCH (a:Person {email: {emailParam1} })-[r]->(b:Person {email:{emailParam2}}) DELETE r',
+            params: {emailParam1: email1,
+                emailParam2:email2}
+        }, function (err,results) {
+            if(err)
+                callback(null,err);
+            else
+            {
+                var result=JSON.stringify(results);
+                console.log("Results for delete relationships:"+result.toString());
+                //callback('success',null);
+            }
+        });
+        db.cypher({
+            query: 'MATCH (a:Person {email: {emailParam1} })-[r]->(b:Person {email:{emailParam2}}) DELETE r',
+            params: {emailParam1: email2,
+                emailParam2:email1}
+        }, function (err,results) {
+            if(err)
+                callback(null,err);
+            else
+            {
+                var result=JSON.stringify(results);
+                console.log("Results for delete relationships:"+result.toString());
+                callback('success',null);
+            }
+        });
+    }
+    catch (e)
+    {
+        console.log("Exception in deleting node:"+e);
+        callback(null,e);
+    }
+
+}
+
+
 global.Father=function Father(email1,email2,callback)
 {
     try {
@@ -326,18 +476,33 @@ global.Brother=function Brother(email1,email2,callback)
 global.Spouse=function Spouse(email1,email2,callback)
 {
     try {
-        db.cypher({
-            query: 'MATCH (n:Person),(m:Person) WHERE n.email = {emailParam1} AND m.email = {emailParam2} CREATE (n)-[r:Spouse]->(m) RETURN r',
-            params: {emailParam1: email1,
-                emailParam2:email2}
-        }, function (err,results) {
-            if(err)
-                callback(null,err);
-            else
+        check_single_relation(email1,function (result,err){
+            if (err)
             {
-                var result=JSON.stringify(results);
-                console.log("Results:"+result.toString());
-                callback('success',null);
+                console.log("Error in check single relation: "+err);
+            }
+            else {
+                if (result.indexOf("Spouse")==-1) {
+                    db.cypher({
+                        query: 'MATCH (n:Person),(m:Person) WHERE n.email = {emailParam1} AND m.email = {emailParam2} CREATE (n)-[r:Spouse]->(m) RETURN r',
+                        params: {
+                            emailParam1: email1,
+                            emailParam2: email2
+                        }
+                    }, function (err, results) {
+                        if (err)
+                            callback(null, err);
+                        else {
+                            var result = JSON.stringify(results);
+                            console.log("Results:" + result.toString());
+                            callback('success', null);
+                        }
+                    });
+                }
+                else
+                {
+                    callback('Spouse already present for the node',null);
+                }
             }
         });
     }
@@ -348,72 +513,7 @@ global.Spouse=function Spouse(email1,email2,callback)
     }
 };
 
-function get_all_relationships(email,callback)
-{
-    try{
-        db.cypher({
-            query: 'MATCH (a:Person {email: {emailParam}})-[r]-(b) RETURN type(r), b, a',
-            params: {emailParam:email}
-        },
-        function (err,results){
-            if(err)
-                callback(null,err);
-            else
-            {
-                var result=JSON.stringify(results);
-                console.log("Results for all relationship from a node:"+result);
-                callback(result,null);
-            }
-        });
 
-    }
-
-    catch (e)
-    {
-        console.log("Excepting in get all relationships:"+e);
-        callback(null,e);
-    }
-}
-
-function delete_relationships(email1,email2,callback)
-{
-    try {
-        db.cypher({
-            query: 'MATCH (a:Person {email: {emailParam1} })-[r]->(b:Person {email:{emailParam2}}) DELETE r',
-            params: {emailParam1: email1,
-                emailParam2:email2}
-        }, function (err,results) {
-            if(err)
-                callback(null,err);
-            else
-            {
-                var result=JSON.stringify(results);
-                console.log("Results for delete relationships:"+result.toString());
-                //callback('success',null);
-            }
-        });
-        db.cypher({
-            query: 'MATCH (a:Person {email: {emailParam1} })-[r]->(b:Person {email:{emailParam2}}) DELETE r',
-            params: {emailParam1: email2,
-                emailParam2:email1}
-        }, function (err,results) {
-            if(err)
-                callback(null,err);
-            else
-            {
-                var result=JSON.stringify(results);
-                console.log("Results for delete relationships:"+result.toString());
-                callback('success',null);
-            }
-        });
-    }
-    catch (e)
-    {
-        console.log("Exception in deleting node:"+e);
-        callback(null,e);
-    }
-
-}
 router.post('/create', function(req, res, next) {
 
     var req_params=req.body;
@@ -753,7 +853,127 @@ router.post('/getRelationship',function(req,res,next){
                                 }
                                 res.status(200).send(final_json);
                             }
+                            else if (type=='sankey')
+                            {
+                                var sent_flag=false;
+                                var left_count=0;
+                                var final_json=[];
+                                for (i=0;i<temp_json.length;i++)
+                                {
+                                        var temp_array = new Array(4);
+                                        if (High_level.indexOf(temp_json[i]['type(r)']) != -1) {
+                                            left_count++;
+                                            temp_array[0] = (temp_json[i].b.properties.fname + " " + temp_json[i].b.properties.lname);
+                                            temp_array[1] = (temp_json[i].a.properties.fname + " " + temp_json[i].a.properties.lname);
+                                            temp_array[2] = 1;
 
+                                            final_json.push(temp_array);
+                                            checkRelationship_with_param(temp_json[i].a.properties.email, temp_json[i].b.properties.email, i, function (result, err,j) {
+                                                if (err) {
+                                                    console.log("Error in check Relationship: " + err);
+                                                }
+                                                else {
+                                                    final_json[j][3]=result[0]['type(r)'];
+                                                    left_count--;
+                                                    if (left_count==0) {
+                                                        sent_flag=true;
+                                                        res.status(201).send(final_json);
+                                                    }
+
+                                                }
+                                            });
+                                        }
+                                        else
+                                        {
+                                            temp_array[0] = (temp_json[i].a.properties.fname + " " + temp_json[i].a.properties.lname);
+                                            temp_array[1] = (temp_json[i].b.properties.fname + " " + temp_json[i].b.properties.lname);
+                                            temp_array[2] = 1;
+                                            temp_array[3] = temp_json[i]['type(r)'];
+                                            final_json.push(temp_array);
+                                        }
+                                }
+
+                                if(left_count==0)
+                                {
+                                    if(!sent_flag)
+                                        res.status(201).send(final_json);
+                                }
+
+                            }
+                        }
+                    });
+                }
+                else
+                {
+                    res.status(401).send(JSON.stringify({'error':'Cannot fetch reslations because node does not exist'}));
+                }
+            }
+        });
+    }
+});
+
+router.post('/getHome',function(req,res,next){
+    var req_params=req.body;
+    var email=req_params.email;
+    var type=req_params.type;
+    if(email==undefined || type==undefined)
+    {
+        res.status(401).send(JSON.stringify({'error':'Missing email or type in parameter'}));
+    }
+    else
+    {
+        get_node(email,function(node_result,error){
+
+            if(error)
+            {
+                console.log("Error in get node: "+error);
+                res.status(500).send(JSON.stringify("Internal Server Error"));
+            }
+            else {
+                console.log("node result"+node_result);
+                if(node_result!=undefined && node_result!='[]') {
+                    get_home(email, function (result,error) {
+                        if(error)
+                        {
+                            console.log("Error"+error);
+                            res.status(500).send(JSON.stringify(({'error':error})));
+                        }
+                        else {
+                            var temp_json=JSON.parse(result);
+                            if (type=='home')
+                            {
+                                var final_json={};
+                                final_json['nodes']=[];
+                                final_json['edges']=[];
+                                for(i=0;i<temp_json.length;i=i+2)
+                                {
+                                    var temp_nodes_array_dest={};
+                                    var temp_nodes_array_source={};
+                                    var temp_edges_array_dest={};
+                                    var temp_edges_array_source={};
+
+                                    temp_nodes_array_dest['id']=(temp_json[i].b.properties.fname) + " " + (temp_json[i].b.properties.lname);
+                                    temp_nodes_array_dest['nodeType']=temp_json[i]['type(r)'];
+
+                                    temp_nodes_array_source['id']=(temp_json[i].a.properties.fname) + " " + (temp_json[i].a.properties.lname);
+                                    temp_nodes_array_source['nodeType']=temp_json[i+1]['type(r)'];
+
+
+                                    temp_edges_array_dest['source']=(temp_json[i].a.properties.fname) + " " + (temp_json[i].a.properties.lname);
+                                    temp_edges_array_dest['target'] = (temp_json[i].b.properties.fname) + " " + (temp_json[i].b.properties.lname);
+                                    temp_edges_array_dest['edgeType'] = temp_json[i]['type(r)'];
+
+                                    temp_edges_array_source['target']=(temp_json[i].a.properties.fname) + " " + (temp_json[i].a.properties.lname);
+                                    temp_edges_array_source['source'] = (temp_json[i].b.properties.fname) + " " + (temp_json[i].b.properties.lname);
+                                    temp_edges_array_source['edgeType'] = temp_json[i+1]['type(r)'];
+
+                                    final_json.nodes.push(temp_nodes_array_dest);
+                                    final_json.nodes.push(temp_nodes_array_source);
+                                    final_json.edges.push(temp_edges_array_dest);
+                                    final_json.edges.push(temp_edges_array_source);
+                                }
+                                res.status(200).send(final_json);
+                            }
                         }
                     });
                 }
@@ -963,3 +1183,4 @@ router.post('/modifyNode',function (req,res,next) {
 });
 
 module.exports = router;
+
