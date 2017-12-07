@@ -713,4 +713,114 @@ router.post('/getNode',function(req,res,next){
     }
 });
 
+router.post('/modifyRelationship', function(req, res, next) {
+    var relationship_list=['Father','Mother','Son','Daughter','Brother','Sister','Spouse'];
+    var req_params=req.body
+    var email1=req_params.email1;
+    var email2=req_params.email2;
+    var r1=req_params.r1;
+    var r2=req_params.r2;
+
+    console.log(JSON.stringify(req.body));
+    if(email1 == undefined ||  r1 == undefined || email2 == undefined || r2 == undefined)
+    {
+        res.status(401).send(JSON.stringify({'error':'Missing email or relationship in parameters'}));
+    }
+    else
+    {
+        if (relationship_list.indexOf(r1)==-1 || relationship_list.indexOf(r2)==-1)
+        {
+            res.status(401).send(JSON.stringify({error:'This type of relationship is not supported right now'}));
+        }
+
+        var send_email=[];
+        send_email[0]=email1;
+        send_email[1]=email2;
+        get_nodes(send_email,function(node_result,error){
+
+            if(error)
+            {
+                console.log("Error in get node: "+error);
+                res.status(500).send(JSON.stringify("Internal Server Error"));
+            }
+            else {
+
+                if(node_result == 'success') {
+
+                    delete_relationships(email1,email2,function(node_result,error){
+
+                        if(error)
+                        {
+                            console.log("Error in get node: "+error);
+                            res.status(500).send(JSON.stringify("Internal Server Error"));
+                        }
+                        else {
+                            console.log("node result"+node_result);
+                            res.status(200).send();
+                        }
+                    });
+
+                    checkRelationship(email1,email2,function (results,err){
+
+                        if (err)
+                        {
+                            console.log("Error in check relationship: "+err);
+                            res.status(500).send(JSON.stringify({'errro':err}));
+                        }
+                        else if (results=='[]'){
+
+                            if (r1 in global && typeof global[r1] === "function") {
+                                global[r1](email1, email2, function (result, err) {
+                                    if (err) {
+                                        console.log("Error:" + err);
+                                    }
+                                    else {
+                                        if (result == 'success') {
+                                        }
+                                        else {
+                                            console.log("Result" + result.toString());
+                                            res.status(401).send(JSON.stringify({'error': result}));
+                                        }
+                                    }
+                                });
+                            }
+                            else {
+                                console.log("could not find " + r1 + " function");
+                            }
+                            if (r2 in global && typeof global[r2] === "function") {
+
+                                global[r2](email2, email1, function (result, err) {
+                                    if (err) {
+                                        console.log("Error:" + err);
+                                    }
+                                    else {
+                                        if (result == 'success') {
+                                            res.status(200).send();
+                                        }
+                                        else {
+                                            console.log("Result" + result.toString());
+                                            res.status(401).send(JSON.stringify({'error': result}));
+                                        }
+                                    }
+                                });
+                            }
+                            else {
+                                console.log("could not find " + r1 + " function");
+                            }
+                        }
+                        else
+                        {
+                            res.status(401).send(JSON.stringify({'error':'Cannot create Relationship as it already exists'}));
+                        }
+                    });
+                }
+                else
+                {
+                    res.status(401).send(JSON.stringify({'error':'Cannot create relationship as all the nodes do not exist'}));
+                }
+            }
+        });
+    }
+});
+
 module.exports = router;
