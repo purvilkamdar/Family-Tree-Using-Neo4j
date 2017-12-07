@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBEpnq4M2p5Xpvcwfi7ayiAELK7nUAu_qQ&sensor=false" type="text/javascript"></script>
+       <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.6.5/angular.js"></script>
+         <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.6.5/angular-animate.min.js"></script>
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.6.5/angular-touch.min.js"></script>
+        	<script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.6.5/angular-route.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/2.5.0/ui-bootstrap.min.js"></script>
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/2.5.0/ui-bootstrap-tpls.js"></script>	
+    <link rel="stylesheet" href="/common/alchemy/alchemy.css"/>
+    <script src="/common/jquery-2.1.3.js"></script>
+    <script src="/common/d3.js"></script>
+    <script src="/common/lodash.js"></script>
+    <link rel="stylesheet" href="/stylesheets/simple-sidebar.css"/>
+   <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+     <!-- <script src="/Javascript/angular-google-chart.js"></script>-->
+	<script src="/angularjs/appController.js"></script>
+	  <script src="/common/alchemy/alchemy.js"></script>
+	  	<script src="/common/alchemy/alchemy.min.js"></script>
+	<script src="/common/alchemy/alchemy.min.css"></script>
+	  <script src="https://rawgit.com/allenhwkim/angularjs-google-maps/master/build/scripts/ng-map.js"></script>
+<script src="https://cdn.rawgit.com/vast-engineering/jquery-popup-overlay/1.7.13/jquery.popupoverlay.js"></script>
+    <style>
+
+		  .affix {
+		      top: 0;
+		      width: 100%;
+		      z-index: 9999 !important;
+		      background-color: black;
+		  }
+
+		  .affix + .container-fluid {
+		      padding-top: 70px;
+		  }
+		  
+		  .affix1 {
+		      top: 5px;
+		      z-index: 9999 !important;
+		  }
+  			.navbar {
+				margin-bottom: 0px !important;
+				  border-radius: 0px;
+		   }
+		  .nav.active {
+		  	background-color: black;
+		  }
+		  .nav a {
+		  	color: #1ab188;
+		  }
+		  .navbar-inverse .navbar-nav>li>a{
+		  	color: #1ab188;
+		  }
+		  .nav1 {
+		      background-color: black;
+		      height: 650px;
+		      margin-left: -20px;
+		      width: 250px;
+		  }
+		  .alchemy {
+			 float:right;
+		  }
+   
+		   .modal {
+			    display: none; /* Hidden by default */
+			    position: fixed; /* Stay in place */
+			    z-index: 1; /* Sit on top */
+			    left: 0;
+			    top: 0;
+			    width: 100%; /* Full width */
+			    height: 100%; /* Full height */
+			    overflow: auto; /* Enable scroll if needed */
+			    background-color: rgb(0,0,0); /* Fallback color */
+			    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+			    padding-top: 60px;
+			}
+
+	       #map {
+	        height: 600px;
+	        width: 850px;
+	        float:right;
+	       }
+  </style>
+</head>
+<body ng-app="appModule" ng-controller="appController" data-ng-init="loadGraph()">
+
+<!-- MODIFY MODAL DIALOG-->
+ <script type="text/ng-template" id="myModifyModal.html">
+        <div class="modal-header">
+            <h3 class="modal-title"><strong>Modify Relation</strong></h3>
+        </div>
+        <div class="modal-body">
+            <center>            
+            <form ng-submit="signUp()">
+      <div class="tab-content">
+        <div id="signup">   
+          <div class="top-row">
+           <table>
+		          <tr>
+		            <td>
+		            		<label>
+		              		Email Address<span class="req">*</span>
+		            		</label>
+		            </td>
+		            <td>
+		            		<input type="email" ng-model="emailR" required autocomplete="off"/>
+		            </td>
+		           </tr>
+		           <tr>
+		           	<td>
+		            	  	<label>
+		            		     Your Relation<span class="req">*</span>
+		              	</label>
+		           	</td>
+		           	<td>
+		          	 	<select style="width: 100%;"required ng-model="yourRelation">
+				              <option value="Father" selected="selected">Father</option>
+				              <option value="Mother">Mother</option>
+				              <option value="Son">Son</option>
+				              <option value="Daughter">Daughter</option>
+				              <option value="Brother">Brother</option>
+				              <option value="Sister">Sister</option>
+				              <option value="Spouse">Spouse</option>
+						 </select>
+		           	</td>
+		           </tr> 
+		            <tr>
+		           	<td>
+		            	  	<label>
+		            		     Their Relation<span class="req">*</span>
+		              	</label>
+		           	</td>
+		           	<td>
+		           		<select style="width: 100%;"required ng-model="theirRelation">
+				              <option value="Father" selected="selected">Father</option>
+				              <option value="Mother">Mother</option>
+				              <option value="Son">Son</option>
+				              <option value="Daughter">Daughter</option>
+				              <option value="Brother">Brother</option>
+				              <option value="Sister">Sister</option>
+				              <option value="Spouse">Spouse</option>
+						 </select>
+		           	</td>
+		           </tr> 
+		           </table> 
+        </center>
+        </div>
+        <div class="modal-footer">
+            <center>
+            <button class="btn btn-primary" ng-click="modifyModalOk()">OK</button>
+            <button class="btn btn-primary" ng-click="modifyModalCancel()">Cancel</button>
+            </center>
+</div>
+</form>
+    </script>
+<!-- MODIFY MODAL DIALOG-->
+
+<!-- DELETE MODAL DIALOG-->
+ <script type="text/ng-template" id="myDeleteModal.html">
+        <div class="modal-header">
+            <h3 class="modal-title"><strong>Delete Relation</strong></h3>
+        </div>
+        <div class="modal-body">
+            <center>            
+            <form ng-submit="signUp()">
+      <div class="tab-content">
+        <div id="signup">   
+          <div class="top-row">
+           <table>
+          <tr>
+            <td>
+            <label>
+              Email Address<span class="req">*</span>
+            </label>
+            </td>
+            <td>
+            <input type="email" ng-model="emailR" required autocomplete="off"/>
+            </td>
+           </tr>
+           </table> 
+        </center>
+        </div>
+        <div class="modal-footer">
+            <center>
+            <button class="btn btn-primary" ng-click="deleteModalOk()">OK</button>
+            <button class="btn btn-primary" ng-click="deleteModalCancel()">Cancel</button>
+            </center>
+</div>
+</form>
+    </script>
+<!-- DELETE MODAL DIALOG-->
+
+
+<!-- ADD MODAL DIALOG-->
+ <script type="text/ng-template" id="myModal.html">
+
+        <div class="modal-header">
+            <h3 class="modal-title"><strong>Add Relation</strong></h3>
+        </div>
+        <div class="modal-body">
+             <center>            
+            <form ng-submit="signUp()">
+		      <div class="tab-content">
+		        <div id="signup">   
+		          <div class="top-row">
+		           <table>
+		           <tr>
+		              <td>
+		              	<label>
+		               		 First Name<span class="req">*</span>
+		             	</label>
+		              </td>
+		              <td>
+		              		<input type="text" ng-model="finame" required autocomplete="off" />
+		              </td>
+		           </tr>
+		           <tr>
+		             <td>
+		               <label>
+		                		Last Name<span class="req">*</span>
+		              </label>
+		             </td>
+		             <td>
+		              		<input type="text" ng-model="lsname" required autocomplete="off"/>
+		             </td>
+		          </tr>
+		          <tr>
+		            <td>
+		            		<label>
+		              		Email Address<span class="req">*</span>
+		            		</label>
+		            </td>
+		            <td>
+		            		<input type="email" ng-model="emailR" required autocomplete="off"/>
+		            </td>
+		           </tr>
+		           <tr>
+		           	<td>
+		            	  	<label>
+		            		     Your Relation<span class="req">*</span>
+		              	</label>
+		           	</td>
+		           	<td>
+		          	 	<select style="width: 100%;"required ng-model="yourRelation">
+				              <option value="Father" selected="selected">Father</option>
+				              <option value="Mother">Mother</option>
+				              <option value="Son">Son</option>
+				              <option value="Daughter">Daughter</option>
+				              <option value="Brother">Brother</option>
+				              <option value="Sister">Sister</option>
+				              <option value="Spouse">Spouse</option>
+						 </select>
+		           	</td>
+		           </tr> 
+		            <tr>
+		           	<td>
+		            	  	<label>
+		            		     Their Relation<span class="req">*</span>
+		              	</label>
+		           	</td>
+		           	<td>
+		           		<select style="width: 100%;"required ng-model="theirRelation">
+				              <option value="Father" selected="selected">Father</option>
+				              <option value="Mother">Mother</option>
+				              <option value="Son">Son</option>
+				              <option value="Daughter">Daughter</option>
+				              <option value="Brother">Brother</option>
+				              <option value="Sister">Sister</option>
+				              <option value="Spouse">Spouse</option>
+						 </select>
+		           	</td>
+		           </tr> 
+		           <tr>
+		          	<td>
+		          		<label>
+		            		    Gender<span class="req">*</span>
+		              	</label>
+		             </td>
+		             <td>
+			              <select style="width: 100%;"required required ng-model="gender">
+				              <option value="Gender" selected="selected">Gender*</option>
+				              <option value="Male" >Male</option>
+				              <option value="Female" >Female</option>
+						  </select>
+		          	</td>
+		           </tr>
+		           <tr>
+		           	<td>
+		            	  	<label>
+		            		    City<span class="req">*</span>
+		              	</label>
+		           	</td>
+		           	<td>
+		            		  <input type="text" ng-model="cityR" required autocomplete="off" />
+		           	</td>
+		           </tr>  
+		           <tr>
+		           	<td>
+		              <label>
+		                Country<span class="req">*</span>
+		              </label>
+		             </td>
+		             <td>
+		              <input type="text" ng-model="countryR" required autocomplete="off" />
+		             </td>
+		            </tr> 
+		           <tr>
+		           	<td>
+		              <label>
+		                Zip Code<span class="req">*</span>
+		              </label>
+		             </td>
+		             <td> 
+		              <input type="text" ng-model="zipCodeR" required autocomplete="off" />
+		             </td>
+		           </tr>    
+		           </table> 
+		        </center>
+        </div>
+        <div class="modal-footer">
+		            <center>
+		            <button class="btn btn-primary" ng-click="ok()">OK</button>
+		            <button class="btn btn-primary" ng-click="cancel()">Cancel</button>
+		            </center>
+		 </div>
+		 </form>
+
+    </script>
+<!-- ADD MODAL DIALOG-->
+
+ 
+		<nav class="navbar navbar-inverse" data-spy="affix" data-offset-top="197">
+		  <ul class="nav navbar-nav">
+		    <li class="active" style="width:245px"><a href="#">Family Tree Representation</a></li>
+		    <li><a href="#"></a></li>
+		    <li><a href="homePage">Graph</a></li>
+		    <li><a href="maps">Google Maps</a></li>
+		     <li><a href="sankey">Sankey Representation</a></li>
+		     <li><a href="charts">Chart Representation</a></li>
+		     <li class="dropdown">
+          		    <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{user}}&nbsp;&nbsp;<span class="glyphicon glyphicon-user pull-right"></span></a>
+          			<ul class="dropdown-menu">
+            				<li><a ng-click="signOut()">Sign Out <span class="glyphicon glyphicon-log-out pull-right"></span></a></li>
+          			</ul>
+        		</li>
+		  </ul>
+		</nav>
+
+   <nav class="col-sm-3">
+      <ul class="nav nav1 nav-pills nav-stacked" data-spy="affix1" data-offset-top="205"><br><br>
+       <li><a ng-click="openModal()" >Add Relations</a><li><br>
+        <li><a ng-click="openModifyModal()" >Modify Relations</a><li><br>
+        <li><a ng-click="openDeleteModal()" >Delete Relations</a><li>
+      </ul>
+  </nav>
+  
+  
+    <div id="wrapper">
+
+        <!-- Page Content -->
+
+     <div id="page-content-wrapper">
+            <div class="container-fluid">
+           		 <div my-map="" id = "map"></div>
+				          <script  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBEpnq4M2p5Xpvcwfi7ayiAELK7nUAu_qQ">
+				      	  </script>
+				      
+  
+        <!-- /#page-content-wrapper -->
+     </div>
+    </div>
+    </div>
+    <!-- /#wrapper -->
+    <div class="footer">
+  <p>Copyright@2017-2018</p>
+</div>
+    <!-- Bootstrap core JavaScript -->
+   
+
+    <!-- Menu Toggle Script -->
+    <script>
+    $("#menu-toggle").click(function(e) {
+        e.preventDefault();
+        $("#wrapper").toggleClass("toggled");
+    });
+    </script>
+
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+

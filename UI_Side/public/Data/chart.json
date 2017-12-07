@@ -1,0 +1,34 @@
+{
+      "cols" : [
+          {"label": "Name", "pattern": "", "type": "string"},
+          {"label": "Manager", "pattern": "", "type": "string"},
+          {"label": "ToolTip", "pattern": "", "type": "string"}
+      ], 
+      "rows" : [
+          {"c": [
+              {"v": "1", "f": "Mike O."},
+              {"v": ""},
+              {"v": "The President"}
+          ]},
+          {"c": [
+              {"v": "2", "f": "Jim"},
+              {"v": "1"},
+              {"v": "VP"}
+          ]},
+          {"c": [
+              {"v": "3", "f": "Alice"},
+              {"v": "1"},
+              {"v": ""}
+          ]},
+          {"c": [
+              {"v": "4", "f": "Bob"},
+              {"v": "2"},
+              {"v": "Bob Sponge"}
+          ]},
+          {"c": [
+              {"v": "Carol"},
+              {"v": "4"},
+              {"v": ""}
+          ]}
+      ]
+    }
