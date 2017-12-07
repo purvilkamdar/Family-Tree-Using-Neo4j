@@ -84,7 +84,7 @@ app.controller(
 						ariaLabelledBy: 'modal-title',
 						ariaDescribedBy: 'modal-body',
 						templateUrl: 'myDeleteModal.html',
-						controller :'ModelHandlerController',
+						controller :'appController',
 						controllerAs: '$ctrl',
 						size: 'lg',
 						resolve: {
@@ -155,29 +155,38 @@ app.controller(
 						              edgeCaption: 'edgeType',
 						              nodeStyle: {
 						                    "Father": {
-						                      "color"      : "#F6F",
-						                      "radius"     : 10,
-						                      "borderWidth": 2
+						                      "color"      : "Red",
+						                      "radius"     : 15
 						                    },
 						                    "Sister":{
-						                      "radius"     : 8
+						                      "radius"     : 15
 						                    },
 						                    "Brother":{
-							                      "radius"     : 8
+							                      "radius"     : 15
 							                },
 							                "Daughter":{
 							                	"color"      : "Green",
-							                	     "radius"    :9
+							                	     "radius"    :15
+							                },
+							                "Mother":{
+							                	"color"      : "#F6F",
+							                	     "radius"    :15
+							                },
+							                "Son":{
+							                	"color"      : "Yellow",
+							                	     "radius"    :15
+							                },
+							                "Spouse":{
+							                	"color"      : "69149b",
+							                	     "radius"    :15
 							                }
 						              },
 						              edgeStyle: {
-						                    "IS_SON_OF": {
-						                      "width": 3,
-						                      "color": "rgba(0,255,0,0.4)"
-						                    },
-						                    "IS_BROTHER_OR_SISTER": {
-						                      "width": 3,
-						                      "color": "rgb(0,255,0)"
+						                    "all" : {
+						                    		"width": 6,
+						                         "color": "#000000",
+						                    		"line-style": "10,10,2,2",
+						                      	"directed": true,
 						                    }
 						              }
 						          };
@@ -244,13 +253,29 @@ app.controller(
 										}).then(function (success){
 											console.log("In mongo database");
 											console.log("asdasd"+JSON.stringify(success.data.statuscode));
-											if(success.data.statuscode == 200)
+											if(success.data.statuscode == '200')
 												{
-												   $scope.signUpError = true;
+												   $scope.signUpError = false;
+												   $scope.signUpSuccess = true;
 												   $scope.email ="";
 												  $scope.pwd = "";
-												} else{
-													 $scope.signUpError = false;
+												  $scope.fname = "";
+												  $scope.lname = "";
+												  $scope.city = "";
+												  $scope.country = "";
+												  $scope.zipCode = "";
+												  $scope.signUpMsg = "Sign-up Successfull. Please log-in to continue.";
+												} else if(success.data.statuscode == '500'){
+													$scope.signUpSuccess = false;
+													 $scope.signUpError = true;
+													 $scope.email ="";
+													  $scope.pwd = "";
+													  $scope.fname = "";
+													  $scope.lname = "";
+													  $scope.city = "";
+													  $scope.country = "";
+													  $scope.zipCode = "";
+													 $scope.signUpMsg = "Error occurred during sign-up.";
 												}
 										
 										  },function (error){
@@ -463,7 +488,7 @@ app.controller(
 						var jso = success.data;
 						for (var i = 0; i < jso.length; i++) {
 							  console.log(JSON.stringify(jso[i]));
-							  var a = jso[i].name + " is my " + jso[i].relation;
+							  var a = jso[i].name + " is my " + jso[i].relation ;
 							  setMarker(map, new google.maps.LatLng(jso[i].lat, jso[i].long), jso[i].city, a);
 					    }
 						

@@ -3,9 +3,10 @@
  */
 var express = require('express');
 var MongoClient = require('mongodb').MongoClient;
-var url = "mongodb://192.168.99.100:27017/myFamilyTreeDB";
+var url = "mongodb://localhost:27017/myFamilyTreeDB";
 var http = require('http');
 var request = require('request');
+var publicUrl = "http://54.234.118.177:4000/"
 
 exports.index = function(req, res) {
 	res.render('index', {
@@ -38,7 +39,7 @@ exports.chartdata = function(req,res){
 	console.log("In data chart function");
 	console.log("email is "+ req.body.useremail);
 	request.post(
-			'http://localhost:4000/getRelationship',
+			publicUrl + '/getRelationship',
 			{
 				json : {
 					email : req.body.useremail,
@@ -85,7 +86,7 @@ exports.deleteRelation = function(req, res) {
 				};
 				console.log("DATA Delete "+JSON.stringify(myobj7));
 				request.post(
-						'http://localhost:4000/deleteRelationship',
+						publicUrl + '/deleteRelationship',
 						{
 							json : myobj7
 						},
@@ -130,7 +131,7 @@ exports.modifyRelation = function(req, res) {
 						    r2:req.body.theirRelation
 				};
 				request.post(
-						'http://localhost:4000/modifyRelationship',
+						publicUrl + '/modifyRelationship',
 						{
 							json : myobj7
 						},
@@ -157,7 +158,7 @@ exports.sankeyData = function(req, res) {
 	console.log("In getRelationForGoogle");
 
 	request.post(
-		'http://localhost:4000/getRelationship',
+			publicUrl + '/getRelationship',
 		{
 			json : {
 				email : req.body.userEmail,
@@ -182,7 +183,7 @@ exports.getRelationForGoogle = function(req, res) {
 	console.log("In getRelationForGoogle");
 
 	request.post(
-		'http://localhost:4000/getRelationship',
+			publicUrl + '/getRelationship',
 		{
 			json : {
 				email : req.body.userEmail,
@@ -206,7 +207,7 @@ exports.getRelationForGraphs = function(req, res) {
 	console.log("In getRelationForGoogle");
 
 	request.post(
-		'http://localhost:4000/getHome',
+			publicUrl + '/getHome',
 		{
 			json : {
 				email : req.body.userEmail,
@@ -292,7 +293,7 @@ exports.relation = function(req, res) {
 									};
 									
 									request.post(
-										'http://localhost:4000/createRelationship',
+											publicUrl + '/createRelationship',
 										{
 											json : d
 										},
@@ -305,11 +306,8 @@ exports.relation = function(req, res) {
 												console.log("Relation cannot be created");
 											}
 										}
-					
 									);
-					
 								}
-					
 								db.close();
 							});
 				} // End of the Else part
@@ -332,7 +330,7 @@ exports.relation = function(req, res) {
 						};
 						
 						request.post(
-							'http://localhost:4000/createRelationship',
+								publicUrl + '/createRelationship',
 							{
 								json : d
 							},
@@ -358,12 +356,11 @@ exports.relation = function(req, res) {
 };
 
 
-exports.signUp = function(req, res) {
+exports.signUp = function(req, resp) {
 	var d1 = {
 	     	email2 : req.body.email
 	};
 		
-	    
 	    MongoClient.connect(url, function(err, db) {
 		console.log("In Mongo Save");
 		var myobj1 = {
@@ -424,7 +421,7 @@ exports.signUp = function(req, res) {
 										};
 										var flag = false;
 										request.post(
-												'http://localhost:4000/modifyNode',
+												publicUrl + '/modifyNode',
 												{
 													json : myobj7
 												},
@@ -433,18 +430,17 @@ exports.signUp = function(req, res) {
 														console.log(body);
 														console.log("Successfully updated data in Neo4j.");
 														flag = true;
-														
+														resp.send({
+															statuscode : '200'
+														});
 													} else {
 														console.log("Error");
+														resp.send({
+															statuscode : '500'
+														});
 													}
 												}
-
 											);
-										if(flag == true)
-										{
-										var status = {statuscode:200};
-										res.send(status);
-										}
 									}
 								});
 				
@@ -468,7 +464,7 @@ exports.signUp = function(req, res) {
 						console.log(req.body);
 						var flag = false;
 						request.post(
-							'http://localhost:4000/create',
+								publicUrl + '/create',
 							{
 								json : d
 							},
@@ -477,19 +473,19 @@ exports.signUp = function(req, res) {
 									console.log(body);
 									console.log("In signup grpah database");
 									flag = true;
-								
-								
+									resp.send({
+										statuscode : '200'
+									});
 								} else {
 									console.log("Error");
+									resp.send({
+										statuscode : '500'
+									});
 								}
 							}
-
 						);
-
 					}
-
 					db.close();
-
 				});
 				
 			}//End of else
@@ -540,7 +536,7 @@ exports.login = function(req, res) {
 exports.graphData = function(req, res) {
 	var email1 = req.params.email;
 	request.post(
-			'http://localhost:4000/getRelationship',
+			publicUrl + '/getRelationship',
 			{
 				json : {
 					email : email1,
@@ -556,7 +552,6 @@ exports.graphData = function(req, res) {
 					console.log("Data for getRelationForGoogle sent Successfully");
 				}
 			}
-
 		);
 };
 

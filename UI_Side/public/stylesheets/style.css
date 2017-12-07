@@ -13,6 +13,14 @@ body {
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
 }
 
+.alert-danger{
+	color: red; 
+}
+
+.alert-success{
+	color: green; 
+}
+
 a {
   text-decoration: none;
   color: #00B7FF;

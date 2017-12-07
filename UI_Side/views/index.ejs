@@ -106,9 +106,14 @@
           
           <div ng-show = "signUpError" class="alert alert-danger" role="alert">
 			  <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
-			  Sign-up Successfull. Please log-in to continue.
+			  {{signUpMsg}}
 			</div>
-              
+			
+			<div ng-show = "signUpSuccess" class="alert alert-success" role="alert">
+			  <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+			  {{signUpMsg}}
+			</div>
+              <br>
           <button id="btnSignUp" type="submit" class="button button-block"/>Sign Up</button>
             </div>
           </form>

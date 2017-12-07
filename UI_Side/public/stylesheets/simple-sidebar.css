@@ -8,6 +8,14 @@ body {
   overflow-x: hidden;
 }
 
+.node text {
+    display: none;
+    text-anchor: start;
+    z-index: 1000;
+    font-size: 15px;
+    font-family: "Arial";
+}
+
 input{
 	color: black;
 }
