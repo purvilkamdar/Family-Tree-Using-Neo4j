@@ -1,7 +1,6 @@
 var express = require('express');
 var router = express.Router();
 var neo4j1 = require('neo4j');
-var Promise=require("promise");
 
 var db = new neo4j1.GraphDatabase('http://neo4j:purvil92@localhost:7474');
 
