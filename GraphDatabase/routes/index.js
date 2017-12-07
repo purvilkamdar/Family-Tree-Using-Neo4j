@@ -806,7 +806,7 @@ router.post('/getRelationship',function(req,res,next){
                             var temp_json=JSON.parse(result);
                             if(type=='google') {
                                 var final_json=[];
-                                for (i=0;i<temp_json.length;i=i+2)
+                                for (i=0;i<temp_json.length;i++)
                                 {
                                     var temp_array={};
                                     temp_array['relation']=temp_json[i]['type(r)'];
@@ -877,7 +877,7 @@ router.post('/getRelationship',function(req,res,next){
                                                     left_count--;
                                                     if (left_count==0) {
                                                         sent_flag=true;
-                                                        res.status(201).send(final_json);
+                                                        res.status(200).send(final_json);
                                                     }
 
                                                 }
@@ -896,7 +896,7 @@ router.post('/getRelationship',function(req,res,next){
                                 if(left_count==0)
                                 {
                                     if(!sent_flag)
-                                        res.status(201).send(final_json);
+                                        res.status(200).send(final_json);
                                 }
 
                             }
@@ -963,8 +963,8 @@ router.post('/getHome',function(req,res,next){
                                     temp_edges_array_dest['target'] = (temp_json[i].b.properties.fname) + " " + (temp_json[i].b.properties.lname);
                                     temp_edges_array_dest['edgeType'] = temp_json[i]['type(r)'];
 
-                                    temp_edges_array_source['target']=(temp_json[i].a.properties.fname) + " " + (temp_json[i].a.properties.lname);
-                                    temp_edges_array_source['source'] = (temp_json[i].b.properties.fname) + " " + (temp_json[i].b.properties.lname);
+                                    temp_edges_array_source['target']=(temp_json[i+1].a.properties.fname) + " " + (temp_json[i+1].a.properties.lname);
+                                    temp_edges_array_source['source'] = (temp_json[i+1].b.properties.fname) + " " + (temp_json[i+1].b.properties.lname);
                                     temp_edges_array_source['edgeType'] = temp_json[i+1]['type(r)'];
 
                                     final_json.nodes.push(temp_nodes_array_dest);
@@ -1080,9 +1080,8 @@ router.post('/modifyRelationship', function(req, res, next) {
                         }
                         else {
                             console.log("node result"+node_result);
-                            res.status(200).send();
-                        }
-                    });
+                            //res.status(200).send();
+
 
                     checkRelationship(email1,email2,function (results,err){
 
@@ -1134,7 +1133,10 @@ router.post('/modifyRelationship', function(req, res, next) {
                         }
                         else
                         {
+                            console.log("Results:"+results);
                             res.status(401).send(JSON.stringify({'error':'Cannot create Relationship as it already exists'}));
+                        }
+                    });
                         }
                     });
                 }
