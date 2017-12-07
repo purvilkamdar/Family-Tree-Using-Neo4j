@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 var neo4j1 = require('neo4j');
 
-var db = new neo4j1.GraphDatabase('http://neo4j:admin@localhost:7474');
+var db = new neo4j1.GraphDatabase('http://neo4j:purvil92@localhost:7474');
 
 /* GET home page. */
 
@@ -682,6 +682,32 @@ router.post('/deleteRelationship',function(req,res,next){
             else {
                 console.log("node result"+node_result);
                 res.status(200).send();
+            }
+        });
+    }
+});
+
+router.post('/getNode',function(req,res,next){
+    var req_params=req.body;
+    var email=req_params.email;
+    if(email==undefined)
+    {
+        res.status(401).send(JSON.stringify({'error':'Missing email or type in parameter'}));
+    }
+    else
+    {
+        get_node(email,function(node_result,error){
+
+            if(error)
+            {
+                console.log("Error in get node: "+error);
+                res.status(500).send(JSON.stringify("Internal Server Error"));
+            }
+            else {
+                if(node_result=='[]')
+                    res.status(200).send();
+                else
+                    res.status(404).send();
             }
         });
     }
