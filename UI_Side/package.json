@@ -1,17 +1,19 @@
 {
-  "name": "280_Family_Tree_Representation",
-  "version": "0.0.1",
+  "name": "GraphDatabaseAPI",
+  "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node app.js"
+    "start": "node ./bin/www"
   },
   "dependencies": {
-    "angular-route": "^1.6.7",
-    "angular-ui-bootstrap": "^2.5.6",
-    "ejs": "*",
-    "express": "3.2.6",
-    "mongo": "^0.1.0",
-    "request": "^2.83.0",
-    "sankeyjs": "^1.2.2"
+    "body-parser": "~1.18.2",
+    "cookie-parser": "~1.4.3",
+    "debug": "~2.6.9",
+    "express": "~4.15.5",
+    "jade": "~1.11.0",
+    "morgan": "~1.9.0",
+    "neo4j-driver": "^1.5.1",
+    "neo4j": "^2.0.0-RC2",
+    "serve-favicon": "~2.4.5"
   }
 }

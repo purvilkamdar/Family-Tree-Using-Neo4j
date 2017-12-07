@@ -5,4 +5,4 @@ COPY package.json /app
 COPY . /app
 RUN npm install
 RUN npm build
-EXPOSE 3000
+EXPOSE 4000
