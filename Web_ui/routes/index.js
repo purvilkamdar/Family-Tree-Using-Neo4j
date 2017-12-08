@@ -4,7 +4,10 @@
 var express = require('express');
 var MongoClient = require('mongodb').MongoClient;
 var url = "mongodb://52.207.232.9:27017/myFamilyTreeDB";
+<<<<<<< HEAD
 //var url = "mongodb://127.0.0.1:27017/myFamilyTreeDB";
+=======
+>>>>>>> 0a148fc819dc0e4599a03bd4ffd433e5539186e3
 var http = require('http');
 var request = require('request');
 var publicUrl = "http://52.207.232.9:4000"
