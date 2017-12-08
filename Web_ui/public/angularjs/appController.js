@@ -78,6 +78,7 @@ app.controller(
 					$scope.loginUpError = false;
 					$scope.loginUpSuccess = false;
 					$scope.loginError = false;
+					$scope.emptyGraphs = false;
 					$scope.openDeleteModal = function(){
 						$scope.modalInstance = $uibModal.open({
 						ariaLabelledBy: 'modal-title',
@@ -135,7 +136,14 @@ app.controller(
 							},
 							url : "/getRelationForGraphs"
 						}).then(function (success){
-							 console.log("Data from Server"+ JSON.stringify(success.data));
+							
+							 console.log("Data from Server for Graph"+ JSON.stringify(success.data));
+							 
+							 if(success.data.nodes.length == '0')
+								 {
+								   $scope.emptyGraphs = true;
+								   $scope.emptyGraphMsg = "No Relations to show";
+								 }
 							 var graphData = success.data;
 							 var edgetype = {"edgeType":['Father','Mother','Son','Daughter','Brother','Sister','Spouse']};
 							 var config = {
@@ -193,6 +201,7 @@ app.controller(
 						  	 	 $scope.showGraph = true;
 
 						   },function (error){
+							  
 							    console.log(error, 'can not get data.');
 						   });
 				   }
@@ -303,12 +312,20 @@ app.controller(
 								$window.localStorage.setItem('user',  result.data[0].user[0].email);
 								$window.localStorage.setItem('pwd', result.data[0].user[0].pwd);
 								$scope.loginUpSuccess = true;
+								   $scope.loginError = false;
+								 
 								window.location.assign("/homePage");
 							} 
+							else
+								{
+								
+								 $scope.loginError = true;
+								    $scope.loginUpMsg = "Error occurred during log-in.";
+								}
 						  },function (error){
 							    console.log(error, 'can not get data.');
 							    $scope.loginError = true;
-							    $scope.loginUpMsg = "Error occurred during login-in.";
+							    $scope.loginUpMsg = "Error occurred during log-in.";
 						   });
 					}
 				});
@@ -381,7 +398,7 @@ app.controller(
 					}
 				     
 				 $scope.ok = function(){
-					 alert($scope.finame)
+					
 					 if($scope.finame === undefined,
 								$scope.lsname  === undefined,
 								$scope.emailR  === undefined,

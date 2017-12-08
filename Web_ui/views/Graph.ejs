@@ -387,9 +387,10 @@
      <div id="page-content-wrapper">
             <div class="container-fluid">
            	
-				      
-             <div ng-show= "showGraph"  class="alchemy" id="alchemy"></div>
-  
+		    
+             <div ng-show= "showGraph"  class="alchemy" id="alchemy">
+              <div style="text-align:center; font-size: 20px" ng-show="emptyGraphs"><b>{{emptyGraphMsg}}</b></div> </div>
+  				
         <!-- /#page-content-wrapper -->
      </div>
     </div>

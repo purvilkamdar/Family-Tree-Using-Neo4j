@@ -1,13 +1,14 @@
 /*
- * GET home page.
+ * GET home page
  */
 var express = require('express');
 var MongoClient = require('mongodb').MongoClient;
-var url = "mongodb://localhost:27017/myFamilyTreeDB";
+var url = "mongodb://52.207.232.9:27017/myFamilyTreeDB";
+//var url = "mongodb://127.0.0.1:27017/myFamilyTreeDB";
 var http = require('http');
 var request = require('request');
 var publicUrl = "http://52.207.232.9:4000"
-
+//var publicUrl = "http://127.0.0.1:4000"
 exports.index = function(req, res) {
 	res.render('index', {
 		title : 'Express'
@@ -62,7 +63,7 @@ exports.chartdata = function(req,res){
 
 exports.sankey = function(req, res) {
 	console.log("In Sankey");
-	res.render('sankey', {
+	res.render('Sankey', {
 		title : 'Express'
 	});
 };
