@@ -1,0 +1,13 @@
+ui:
+  image: purvilkamdar/ui:1     ## node.js v4
+
+  links:            ## connects neo4j to app container
+   - mongo
+  ports:            ## publish ports
+   - "3000:3000"
+  entrypoint: npm start   ## starts application
+
+mongo:
+  image: mongo:3.0          ## we use neo4j v3
+  ports:                    ## publish ports to have Web UI
+   - "27017:27017"
