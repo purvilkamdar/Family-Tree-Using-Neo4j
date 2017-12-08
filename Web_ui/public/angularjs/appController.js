@@ -531,7 +531,7 @@ app.controller(
 						var jso = success.data;
 						for (var i = 0; i < jso.length; i++) {
 							  console.log(JSON.stringify(jso[i]));
-							  var a = jso[i].name + " is my " + jso[i].relation ;
+							  var a = jso[i].name + " : " + jso[i].relation ;
 							  setMarker(map, new google.maps.LatLng(jso[i].lat, jso[i].long), jso[i].city, a);
 					    }
 						
